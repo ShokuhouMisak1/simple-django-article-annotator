@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{article.title}}</title>
+    <style>
+        .container{
+            display:flex;
+            gap: 20px;
+        }
+        .article-section{
+            flex:2;
+            padding: 20px;
+            border-right: 1px solid #ccc;
+        }
+        .notes-section{
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            flex:1;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .note-item{
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+        }
+        .highlight-text {
+            background-color: #fff9c4;
+            border-bottom: 2px solid #fbc02d;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .highlight-text:hover {
+            background-color: #fdd835;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{article.title}}</h1>
+        <div class="container">
+            <div id="article-content" class="article-section"><p>{{article.content}}</p></div>
+            <div class="notes-section">
+                <h3>Note Section</h3>
+                <button onclick="openGeneralNoteForm()" style="
+                    width: 100%;
+                    padding: 10px;
+                    background-color: #34495e;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    margin-bottom: 20px;
+                    cursor: pointer;
+                    font-weight: bold;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    transition: background 0.3s;
+                " onmouseover="this.style.backgroundColor='#2c3e50'" onmouseout="this.style.backgroundColor='#34495e'">
+                    Add Notes
+                </button>
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <div id="create-general-note-container" class="general-note-form" style="
+                        display: none;
+                        background-color: #e8f6f3;
+                        border-left: 5px solid #1abc9c;
+                        margin-bottom: 20px;
+                        padding: 15px;
+                        border-radius: 4px;
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                    ">
+                        <p style="margin-top: 0; color: #16a085;"><strong>Notes:</strong></p>
+                        <div style="margin-bottom: 15px;">
+                             <textarea
+                                name="note_content"
+                                rows="5"
+                                style="
+                                    width: 100%;
+                                    padding: 10px;
+                                    border: 1px solid #a2d9ce;
+                                    border-radius: 4px;
+                                    box-sizing: border-box;
+                                    font-size: 14px;
+                                "
+                            ></textarea>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <button type="button" onclick="closeGeneralNoteForm()" style="background: none; border: none; color: #95a5a6; cursor: pointer;">Cancel</button>
+                            <button type="submit" style="background-color: #1abc9c; color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: bold;">Save</button>
+                        </div>
+                    </div>
+                </form>
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <input type="hidden" id="input_start_index" name="start_index" value="0">
+                    <input type="hidden" id="input_end_index" name="end_index" value="0">
+                    <div id="note-form-container" class="note-form" style="display: none; background-color: #f0f4f8; border-left: 5px solid #2c3e50;">
+                        <p style="margin-top: 0; color: #2c3e50;"><strong>Note Card:</strong></p>
+                        <div style="margin-bottom: 15px;">
+                            <label for="selected_text_input" style="font-size: 0.85em; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px;">Selected Text</label>
+                            <textarea
+                                id="selected_text_input"
+                                name="select_text"
+                                rows="3"
+                                style="
+                                    width: 95%;
+                                    padding: 10px;
+                                    background-color: #eec;
+                                    color: #555;
+                                    border: none;
+                                    border-radius: 4px;
+                                    font-style: italic;
+                                    resize: none;
+                                    font-family: serif;
+                                "
+                            ></textarea>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label for="note_content_input" style="font-size: 0.85em; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px;">Your Note</label>
+                            <textarea
+                                id="note_content_input"
+                                name="note_content"
+                                rows="4"
+                                style="
+                                    width: 95%;
+                                    padding: 10px;
+                                    border: 1px solid #bdc3c7;
+                                    border-radius: 4px;
+                                    font-size: 14px;
+                                "
+                            ></textarea>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <button type="reset" style="
+                                background: none;
+                                border: none;
+                                color: #7f8c8d;
+                                cursor: pointer;
+                                font-size: 0.9em;
+                            ">Delete</button>
+
+                            <button type="button" onclick="closeNoteForm()" style="
+                                background: none;
+                                border: none;
+                                color: #7f8c8d;
+                                cursor: pointer;
+                                font-size: 0.9em;
+                            ">Cancel</button>
+
+                            <button type="submit" style="
+                                background: none;
+                                border: none;
+                                color: #7f8c8d;
+                                cursor: pointer;
+                                font-size: 0.9em;
+                            ">Save</button>
+                        </div>
+                    </div>
+                </form>
+                <div id="empty-state-placeholder" style="
+                    text-align: center;
+                    color: #999;
+                    margin-top: 50px;
+                    padding: 20px;
+                ">
+                    <button onclick="showAllNotes()" style="
+                        margin-top: 10px;
+                        border: 1px solid #ddd;
+                        background: white;
+                        padding: 5px 15px;
+                        border-radius: 15px;
+                        cursor: pointer;
+                        color: #666;
+                    ">Show All Notes</button>
+                </div>
+                {% for note in notes %}
+                    <div id = "note-card-{{ note.id }}" class="note-item" style="position: relative; padding-right: 30px; margin-bottom: 15px; border-bottom: 1px solid #eee; display: {% if note.select_text %}none{% else %}block{% endif %} ;width: 100%; box-sizing: border-box;">
+                        <div id="view-mode-{{ note.id }}" class="saved-note" style="
+                            position: relative;
+                            display: block;
+                            background-color: white;
+                            border: 1px solid #e0e0e0;
+                            border-radius: 8px;
+                            padding: 30px 20px;
+                            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+                        ">
+                            <div style="position: absolute; top: 10px; right: 10px; display: flex; align-items: center;gap: 120px;">
+                                <button onclick="toggleEditMode({{ note.id }})" style="border: none; background: none;margin-top: 1px; margin-right:40px; cursor: pointer; " title="Edit">
+                                    edit
+                                </button>
+                                <form action="{% url 'delete_note' note.id %}" method="post" style="position: absolute; margin-top: 0; right: 0;">
+                                    {% csrf_token %}
+                                    <button type="submit" onclick="return confirm('Do you want delete it?')" style="border: none; background: none; cursor: pointer;">
+                                        delete
+                                    </button>
+                                </form>
+                            </div>
+                            <div>
+                                {% if note.select_text %}
+                                    <small><strong>Origin Text:</strong>{{note.select_text}}</small><br>
+                                {% endif %}
+                                <span><strong>Note:</strong>{{note.note_content}}</span>
+                            </div>
+                        </div>
+                        <div id="edit-mode-{{ note.id }}" style="
+                            display: none;
+                            background-color: #f9f9f9;
+                            border: 2px dashed #3498db;
+                            border-radius: 8px;
+                            padding: 15px;
+                        ">
+                            <form action="{% url 'edit_note' note.id %}" method="post">
+                                {% csrf_token %}
+                                <p style="margin: 0 0 5px 0; font-size: 0.9em; color: #999;">Editing...</p>
+                                <textarea name="note_content" rows="3" style="width: 95%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">{{ note.note_content }}</textarea>
+
+                                <div style="margin-top: 10px; text-align: right;">
+                                    <button type="button" onclick="toggleEditMode({{ note.id }})" style="
+                                        background: none; border: none; color: #999; cursor: pointer; margin-right: 10px;
+                                    ">Cancel</button>
+
+                                    <button type="submit" style="
+                                        background-color: #3498db; color: white; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer;
+                                    ">Confirm</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+                <div id="hide-all-container" style="display: none; text-align: right; margin-bottom: 10px; padding-right: 5px;">
+                    <button onclick="hideAllNotes()" style="
+                        background-color: #f1f1f1;
+                        border: 1px solid #ddd;
+                        color: #666;
+                        padding: 5px 12px;
+                        border-radius: 15px;
+                        cursor: pointer;
+                        font-size: 0.85em;
+                        transition: all 0.2s;
+                    " onmouseover="this.style.backgroundColor='#e0e0e0'" onmouseout="this.style.backgroundColor='#f1f1f1'">
+                       Hidden All
+                    </button>
+                </div>
+            </div>
+        </div>
+        <button id="add-note-btn" style="
+            display: none;
+            position: absolute;
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        ">
+        Add Note
+        </button>
+        <script>
+            function openGeneralNoteForm() {
+                document.getElementById('create-general-note-container').style.display = 'block';
+                document.getElementById('create-note-container').style.display = 'none';
+                document.querySelector('#create-general-note-container textarea').focus();
+            }
+
+            function closeGeneralNoteForm() {
+                document.getElementById('create-general-note-container').style.display = 'none';
+            }
+
+            function closeNoteForm() {
+                const formContainer = document.getElementById('note-form-container');
+                if (formContainer) {
+                    formContainer.style.display = 'none';
+                }
+            }
+
+            window.addEventListener('beforeunload', function() {
+                let visibleNoteIds = [];
+                document.querySelectorAll('.note-item').forEach(card => {
+                    if (card.style.display && card.style.display !== 'none') {
+                        let id = card.id.replace('note-card-', '');
+                        visibleNoteIds.push(id);
+                    }
+                });
+                sessionStorage.setItem('saved_visible_notes', JSON.stringify(visibleNoteIds));
+            });
+
+            function restoreVisibleState() {
+                const savedData = sessionStorage.getItem('saved_visible_notes');
+                if (savedData) {
+                    const ids = JSON.parse(savedData);
+                    ids.forEach(id => {
+                        const card = document.getElementById('note-card-' + id);
+                        if (card) {
+                            card.style.display = 'block';
+                        }
+                        document.querySelectorAll('.highlight-text').forEach(span => {
+                            const spanIds = span.dataset.noteIds.split(',').map(String);
+                            if (spanIds.includes(String(id))) {
+                                span.classList.add('active-highlight');
+                                span.style.outline = '2px solid orange';
+                            }
+                        });
+                    });
+                    checkEmptyState();
+                }
+            }
+
+            function checkEmptyState() {
+                const anyVisible = Array.from(document.querySelectorAll('.note-item')).some(card => card.style.display === 'block');
+                const emptyState = document.getElementById('empty-state-placeholder');
+                const hideBtnContainer = document.getElementById('hide-all-container');
+                if (anyVisible) {
+                    emptyState.style.display = 'none';
+                    if(hideBtnContainer) hideBtnContainer.style.display = 'block';
+                } else {
+                    emptyState.style.display = 'block';
+                    if(hideBtnContainer) hideBtnContainer.style.display = 'none';
+                }
+            }
+
+            function getSelectionOffsets(container) {
+                const selection = window.getSelection();
+                if (selection.rangeCount === 0) return null;
+                const range = selection.getRangeAt(0);
+                const preSelectionRange = range.cloneRange();
+                preSelectionRange.selectNodeContents(container);
+                preSelectionRange.setEnd(range.startContainer, range.startOffset);
+                const start = preSelectionRange.toString().length;
+                const end = start + range.toString().length;
+                return { start, end };
+            }
+
+            function createRangeFromOffsets(container, start, end) {
+                let charCount = 0;
+                let targetRange = document.createRange();
+                let startFound = false;
+                let endFound = false;
+                const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null, false);
+                let node;
+                while (node = walker.nextNode()) {
+                    const nodeLength = node.textContent.length;
+                    const nodeEndIndex = charCount + nodeLength;
+                    if (!startFound && start >= charCount && start < nodeEndIndex) {
+                        targetRange.setStart(node, start - charCount);
+                        startFound = true;
+                    }
+                    if (startFound && !endFound && end >= charCount && end <= nodeEndIndex) {
+                        targetRange.setEnd(node, end - charCount);
+                        endFound = true;
+                        break;
+                    }
+                    charCount = nodeEndIndex;
+                }
+                return (startFound && endFound) ? targetRange : null;
+            }
+
+            function showNotes(noteIds) {
+                document.getElementById('empty-state-placeholder').style.display = 'none';
+                document.querySelectorAll('.note-item').forEach(card => card.style.display = 'none');
+                noteIds.forEach(id => {
+                    const card = document.getElementById('note-card-' + id);
+                    if (card) {
+                        card.style.display = 'block';
+                        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                });
+            }
+
+            function showAllNotes() {
+                document.querySelectorAll('.highlight-text').forEach(el => {
+                    el.classList.add('active-highlight');
+                    el.style.outline = '2px solid orange';
+                });
+                document.getElementById('empty-state-placeholder').style.display = 'none';
+                document.querySelectorAll('.note-item').forEach(card => card.style.display = 'block');
+                const hideBtnContainer = document.getElementById('hide-all-container');
+                if(hideBtnContainer) hideBtnContainer.style.display = 'block';
+            }
+
+            function hideAllNotes() {
+                document.querySelectorAll('.highlight-text').forEach(el => {
+                    el.classList.remove('active-highlight');
+                    el.style.outline = 'none';
+                });
+                document.querySelectorAll('.note-item').forEach(card => card.style.display = 'none');
+                checkEmptyState();
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const articleContainer = document.getElementById('article-content');
+                if (!articleContainer) return;
+                const notes = [
+                    {% for note in notes %}
+                        {% if note.select_text %}
+                                { id: {{ note.id }}, start: {{ note.start_index }}, end: {{ note.end_index }} },
+                        {% endif %}
+                    {% endfor %}
+                ];
+                if (notes.length === 0) return;
+                let points = new Set();
+                notes.forEach(n => {
+                    points.add(n.start);
+                    points.add(n.end);
+                });
+                const sortedPoints = Array.from(points).sort((a, b) => a - b);
+                let segments = [];
+                for (let i = 0; i < sortedPoints.length - 1; i++) {
+                    let segStart = sortedPoints[i];
+                    let segEnd = sortedPoints[i+1];
+                    let activeNoteIds = notes
+                        .filter(n => n.start <= segStart && n.end >= segEnd)
+                        .map(n => n.id);
+                    if (activeNoteIds.length > 0) {
+                        segments.push({
+                            start: segStart,
+                            end: segEnd,
+                            ids: activeNoteIds
+                        });
+                    }
+                }
+                segments.reverse();
+                segments.forEach(seg => {
+                    try {
+                        const range = createRangeFromOffsets(articleContainer, seg.start, seg.end);
+                        if (range) {
+                            const span = document.createElement('span');
+                            span.className = 'highlight-text';
+                            span.dataset.noteIds = seg.ids.join(',');
+                            let opacity = 0.3 + (seg.ids.length - 1) * 0.2;
+                            span.style.backgroundColor = `rgba(255, 215, 0, ${opacity})`;
+                            span.style.borderBottom = '1px solid #d4ac0d';
+                            span.onclick = function(e) {
+                                e.stopPropagation();
+                                const isNowActive = this.classList.toggle('active-highlight');
+                                if (isNowActive) {
+                                    this.style.outline = '2px solid orange';
+                                } else {
+                                    this.style.outline = 'none';
+                                }
+                                const ids = this.dataset.noteIds.split(',').map(Number);
+                                ids.forEach(id => {
+                                    const card = document.getElementById('note-card-' + id);
+                                    if (card) {
+                                        if (card.style.display === 'none') {
+                                            card.style.display = 'block';
+                                            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                                        } else {
+                                            if (!isNowActive) {
+                                                card.style.display = 'none';
+                                            }
+                                        }
+                                    }
+                                });
+                                checkEmptyState();
+                            };
+                            range.surroundContents(span);
+                        }
+                    } catch (e) {
+                        console.error("Error:", seg, e);
+                    }
+                });
+                restoreVisibleState();
+            });
+
+
+            document.addEventListener('mouseup', function() {
+                    let selection = window.getSelection();
+                    let selectedText = selection.toString();
+                    let btn = document.getElementById('add-note-btn');
+                    let articleContainer = document.getElementById('article-content');
+                    if (selectedText.length > 0 && articleContainer.contains(selection.anchorNode)){
+                        const currentOffsets = getSelectionOffsets(articleContainer);
+                        const currentText = selectedText;
+                        let range = selection.getRangeAt(0);
+                        let rect = range.getBoundingClientRect();
+                        let btnLeft = rect.right + window.scrollX;
+                        let btnTop = rect.top + window.scrollY - btn.offsetHeight - 10;
+                        btn.style.left = btnLeft + 'px';
+                        btn.style.top = btnTop + 'px';
+                        btn.style.display = 'block';
+                        btn.onclick = function() {
+                            const formContainer = document.getElementById('note-form-container');
+                            formContainer.style.display = 'block';
+                            if (currentOffsets) {
+                                document.getElementById('input_start_index').value = currentOffsets.start;
+                                document.getElementById('input_end_index').value = currentOffsets.end;
+                            }
+                            document.getElementById('selected_text_input').value = currentText;
+                            document.querySelector('textarea[id="note_content_input"]').focus();
+                            btn.style.display = 'none';
+                            const noteTextarea = document.querySelector('textarea[id="note_content_input"]');
+                            if (noteTextarea) {
+                                noteTextarea.value = "Generating Summary...";
+                                noteTextarea.disabled = true;
+                                noteTextarea.style.backgroundColor = "#f4f4f4";
+                                fetch('/api/summarize/', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({ text: selectedText })
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.summary) {
+                                        noteTextarea.value = data.summary;
+                                    } else {
+                                        noteTextarea.value = "";
+                                        noteTextarea.placeholder = "Generating Failed, Please type the nots by hand.";
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('AI Error:', error);
+                                    noteTextarea.value = "";
+                                    noteTextarea.placeholder = "Network Error, Please type the nots by hand.";
+                                })
+                                .finally(() => {
+                                    noteTextarea.disabled = false;
+                                    noteTextarea.style.backgroundColor = "white";
+                                    noteTextarea.focus();
+                                });
+                            }
+                        };
+                    } else {
+                        if (event.target.id !== 'add-note-btn') {
+                            btn.style.display = 'none';
+                        }
+                    }
+                });
+            function toggleEditMode(noteId) {
+                let viewMode = document.getElementById('view-mode-' + noteId);
+                let editMode = document.getElementById('edit-mode-' + noteId);
+                if (editMode.style.display === 'none') {
+                    editMode.style.display = 'block';
+                    viewMode.style.display = 'none';
+                } else {
+                    editMode.style.display = 'none';
+                    viewMode.style.display = 'block';
+                }
+            }
+        </script>
+</body>
+
+</html>

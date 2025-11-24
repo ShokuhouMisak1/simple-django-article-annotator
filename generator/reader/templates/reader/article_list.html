@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Reading List</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 40px;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+        }
+        .article-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
+        .article-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #eee;
+        }
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+            border-color: #3498db;
+        }
+        .article-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .article-preview {
+            font-size: 0.95em;
+            color: #7f8c8d;
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+        .read-more {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #3498db;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+        }
+        .empty-state {
+            text-align: center;
+            color: #999;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>My Reading List</h1>
+    <div style="text-align: center; margin-bottom: 40px;">
+        <form id="upload-form" method="post" enctype="multipart/form-data" action="{% url 'upload_article' %}">
+            {% csrf_token %}
+            <input type="file" id="file-input" name="article_file" accept=".txt,.docx" style="display: none;" onchange="document.getElementById('upload-form').submit();">
+            <button type="button" onclick="document.getElementById('file-input').click();" style="
+                background-color: #3498db;
+                color: white;
+                border: none;
+                padding: 12px 25px;
+                font-size: 1em;
+                border-radius: 30px;
+                cursor: pointer;
+                box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);
+                transition: transform 0.2s, background 0.2s;
+                font-weight: bold;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+            " onmouseover="this.style.transform='translateY(-2px)'; this.style.backgroundColor='#2980b9'"
+              onmouseout="this.style.transform='translateY(0)'; this.style.backgroundColor='#3498db'">
+                Upload Article (.docx / .txt)
+            </button>
+        </form>
+        <p style="font-size: 0.85em; color: #95a5a6; margin-top: 10px;">
+            Supported formats: Word Document (.docx) or Text File (.txt)
+        </p>
+    </div>
+    <div class="article-grid">
+        {% for article in articles %}
+            <a href="{% url 'article_detail' article.id %}" class="article-card">
+                <div class="article-title">{{ article.title }}</div>
+                <div class="article-preview">
+                    {{ article.content|truncatechars:100 }}
+                </div>
+                <div class="read-more">
+                    Read Article
+                </div>
+            </a>
+        {% empty %}
+            <div class="empty-state">
+                <p>No articles found in the database </p>
+                <p>Go to the admin panel (/admin) to add some!</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+</body>
+</html>
